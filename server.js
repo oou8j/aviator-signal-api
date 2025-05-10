@@ -1,30 +1,33 @@
 const express = require('express');
-const axios = require('axios');
 const cors = require('cors');
-
 const app = express();
 const PORT = process.env.PORT || 3000;
+
 app.use(cors());
+app.use(express.json());
 
-const decodeCrash = (hash) => {
-  if (typeof BigInt === 'undefined') return 2;
-  const n = 52n;
-  const x = BigInt('0x' + hash.slice(0, Number(n / 4n)));
-  const e = 1n << n;
-  return x === 0n ? 1 : Number(((100n * e - x) / (e - x))) / 100;
-};
+const VALID_PASSWORD = "VIP1X";
 
-app.get('/api/signal', async (req, res) => {
-  try {
-    const response = await axios.get('https://aviator-api.vercel.app/history?limit=1');
-    const hash = response.data[0].hash;
-    const multiplier = decodeCrash(hash);
-    res.json({ multiplier: multiplier.toFixed(2), time: new Date().toISOString() });
-  } catch (e) {
-    res.status(500).json({ error: 'Failed to fetch signal' });
+app.get('/', (req, res) => {
+  res.send('Aviator Signal API is live');
+});
+
+app.post('/signal', (req, res) => {
+  const { password, continent, app: bettingApp } = req.body;
+
+  if (password !== VALID_PASSWORD) {
+    return res.status(401).json({ status: "error", message: "Invalid password" });
   }
+
+  res.json({
+    status: "success",
+    continent,
+    bettingApp,
+    cashoutTime: "1.92",
+    message: "This is your VIP signal"
+  });
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
